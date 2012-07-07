@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+        <title>Clockical</title>
+        <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+        <script>
+            (function($) {
+                $(document).ready( function() {
+
+                    var width = 100;
+                    var scale = 1;
+                    var imgs = [
+                        "clock-drop-shadow",
+                        "clock-face-shadow",
+                        "clock-face",
+                        "clock-marks",
+                        //"clock-hour-hand-shadow",
+                        //"clock-minute-hand-shadow",
+                        //"clock-second-hand-shadow",
+                        "clock-hour-hand",
+                        "clock-minute-hand",
+                        "clock-second-hand",
+                        "clock-glass",
+                        "clock-frame",
+                    ];
+
+
+                    function getSVG( id )
+                    {
+                        var svgTag = document.getElementById( id );
+                        var svgDoc = svgTag.getSVGDocument();
+                        return svgDoc;
+                    }
+
+                    function getLayers( id )
+                    {
+                        svgDoc = getSVG( id );
+                        var layers = svgDoc.getElementsByTagName("g");
+                        return layers;
+                    }
+
+                    function update( id, angle )
+                    {
+                        var offset = 0;
+                        // if it is an hand image
+                        if( id.indexOf("hand") != -1 ) {
+                            offset = width / 2;
+                        }
+
+                        var layers = getLayers( id );
+
+                        for(var i=0,len=layers.length; layer=layers[i], i<len; i++) {
+                            layer.setAttribute('transform',
+                                'scale('+scale+') translate('+offset+','+offset+') rotate('+ angle +')');
+                        }
+                    }
+
+                    function scaleAll()
+                    {
+                        for(var i=0,len=imgs.length; img=imgs[i], i<len; i++) {
+                            var layers = getLayers( img );
+                            for(var i=0,len=layers.length; layer=layers[i], i<len; i++) {
+                                if( img.indexOf("hand") == -1 ) {
+                                    layer.setAttribute('transform', 'scale('+scale+')');
+                                }
+                            } // for layer
+                        } // for img
+                    }
+
+
+                    function clock( theme )
+                    {
+                        var offset = width * scale / 2;
+
+                        for(var i=0,len=imgs.length; img=imgs[i], i<len; i++) {
+                            var obj = '<object \
+                                style="position:absolute;top:'+ offset +'px;left:'+ offset +'px;" \
+                                width="'+ width * scale +'" \
+                                id="'+ img +'" \
+                                type="image/svg+xml" data="themes/'+ theme +'/'+ img +'.svg" \
+                                ><p>SVG not supported.</p></object>';
+                            $("body").append(obj);
+
+                        }
+                    }
+
+                    setInterval( function() {
+                        var now = new Date();
+                        var seconds = now.getSeconds();
+                        var minutes = now.getMinutes();
+                        var hours   = now.getHours() + minutes / 60;
+
+                        a0 = 90; // initial angle offset
+                        tn = 12;
+                        update("clock-second-hand", seconds * tn/2 - a0);
+                        update("clock-minute-hand", minutes * tn/2 - a0);
+                        update("clock-hour-hand",   hours * 360/tn - a0);
+
+                        scaleAll();
+
+                    } , 1000 ); // every second
+
+
+                    clock('default');
+
+                }); // document ready
+            })(jQuery);
+        </script>
+    </head>
+
+    <body>
+    </body>
+
+</html>
