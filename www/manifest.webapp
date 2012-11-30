@@ -1,0 +1,27 @@
+{
+  "version": "0.1",
+  "name": "Clockical",
+  "description": "A clock",
+  "launch_path": "/",
+  "icons": {
+    "16": "/img/icons/clockical-16.png",
+    "48": "/img/icons/clockical-48.png",
+    "128": "/img/icons/clockical-128.png"
+  },
+  "developer": {
+    "name": "nojhan",
+    "url": "https://github.com/nojhan/clockical"
+  },
+  "installs_allowed_from": ["*"],
+  "appcache_path": "/cache.manifest",
+  "locales": {
+    "en": {
+      "description": "A clock",
+      "developer": {
+          "name": "nojhan",
+          "url": "https://github.com/nojhan/clockical"
+      }
+    }
+  },
+  "default_locale": "en"
+}
