@@ -16,6 +16,7 @@ define(function(require) {
     // jQuery
     var $ = require("jquery");
     //var $ = require("http://code.jquery.com/jquery-1.7.1.min.js");
+    require("suncalc");
 
     // Need to verify receipts? This library is included by default.
     // https://github.com/mozilla/receiptverifier
@@ -48,23 +49,37 @@ define(function(require) {
     {
         console.assert( id != null );
         console.assert( id != "" );
-        console.assert( angle >= 0 && angle <= 360 );
+        console.assert( -90 <= angle && angle <= 270 ); // [0,369]-(a0==90)
         console.assert( width > 0 );
         console.assert( scale > 0 );
 
-        // FIXME use the rotation center
-        var offset = width * scale / 2;
-
-        console.debug( "Update", id, "to", angle, "°+", offset, "*", scale );
-
         var layer = getLayer( id );
 
+        // use the rotation center
+        var tcy = parseFloat( layer.getAttribute("inkscape:transform-center-y") );
+        if( tcy == null ) { tcy = 0; }
+        //console.debug( "Transform center y:", tcy );
+
+        var offset = width * scale / 2;
+        var offset_cy = offset+tcy*scale;
+
+        console.debug( "Update", id, "@", angle, "° +", offset, " *", scale );
+
         // NOTE: the order of the transformations is important!
+        /*
         layer.setAttribute('transform',
               'translate('+ offset +','+ offset +') '
-            + 'rotate('+ angle +')'
             + 'scale('+ scale +') '
+            + 'rotate('+ angle +')'
         );
+        */
+        layer.setAttribute('transform',
+            ""
+            + 'translate('+ offset +','+ offset +') '
+            + 'scale('+ scale +') '
+            + 'rotate('+ angle +') '
+        );
+
     }
 
     // Apply a scale transformation on all given layers (defaults to the known ones).
@@ -107,7 +122,22 @@ define(function(require) {
         $(document).ready( function() {
 
             var _width = 100;
-            var _scale = 4;
+            var _scale = 3;
+
+            // compute sunset and sunrise times when the geoloc is available
+            var _has_sun = false;
+            var _sunrise = 0;
+            var _sunset = 0;
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var lat = position.coords.latitude;
+                var lon = position.coords.longitude;
+                var times = SunCalc.getTimes(new Date(), lat, lon );
+                _sunrise = times.sunrise.getHours() + times.sunrise.getMinutes()/60;
+                _sunset = times.sunset.getHours() + times.sunrise.getMinutes()/60;
+                _has_sun = true;
+                console.info( "At location:", lat, lon);
+                console.info( "Sun times:", _sunrise, _sunset );
+            });
 
             function tick()
             {
@@ -131,6 +161,11 @@ define(function(require) {
                 updateHand("hand_minutes", minutes *  6     - a0, _width, _scale );
                 updateHand("hand_hours",     hours * 360/tn - a0, _width, _scale );
 
+                if( _has_sun ) {
+                    updateHand("hand_sunset",  _sunset  * 360/tn - a0, _width, _scale );
+                    updateHand("hand_sunrise", _sunrise * 360/tn - a0, _width, _scale );
+                }
+
                 scaleAll( _scale ); // we need to scale every second (not sure to know why)
             }
 
@@ -138,6 +173,7 @@ define(function(require) {
             //tick(); // FIXME cannot do a first update??
             setInterval( tick, 1000 ); // every second
             //setInterval( tick, 60000 ); // every minute
+
 
         }); // document ready
     })(jQuery);
